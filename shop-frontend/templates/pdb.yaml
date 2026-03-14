@@ -1,0 +1,12 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: shop-frontend-pdb
+  namespace: {{ .Values.namespace }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: shop-frontend
+{{- end }}

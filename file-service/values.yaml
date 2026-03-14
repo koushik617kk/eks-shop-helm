@@ -1,0 +1,29 @@
+image:
+  repository: "REPLACE_WITH_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/file-service"
+  tag: "latest"
+  pullPolicy: Always
+
+replicaCount: 2    # 2 replicas: one per AZ — EBS volumes are AZ-locked so we limit spread
+app:
+  version: "v1.0.0"
+  storagePath: "/data"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "300m"
+    memory: "256Mi"
+
+# ── Persistent Volume Claim ────────────────────────────────────────────────────
+storage:
+  enabled: true
+  storageClassName: gp3       # AWS EBS GP3 — cheaper than GP2
+  size: 5Gi
+
+pdb:
+  enabled: true
+  minAvailable: 1             # With only 2 replicas, protect at least 1
+
+namespace: demo

@@ -1,0 +1,130 @@
+{{- if .Values.storage.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: file-service-pvc
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: file-service
+spec:
+  accessModes:
+    - ReadWriteOnce         # EBS: only 1 node can mount at a time
+  storageClassName: {{ .Values.storage.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: file-service
+    version: {{ .Values.app.version | quote }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: file-service
+  template:
+    metadata:
+      labels:
+        app: file-service
+        version: {{ .Values.app.version | quote }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ── AZ Affinity: Keep replicas near their EBS volume's AZ ────────────────
+      # EBS PVCs are AZ-locked — don't spread file-service pods to other AZs
+      # This is intentionally different from stateless services!
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: file-service
+              topologyKey: "kubernetes.io/hostname"  # Spread across NODES (not AZs)
+
+      containers:
+        - name: file-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+
+          env:
+            - name: APP_VERSION
+              value: {{ .Values.app.version | quote }}
+            - name: STORAGE_PATH
+              value: {{ .Values.app.storagePath | quote }}
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName   # Injected so logs show which node
+
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+
+          volumeMounts:
+            - name: file-storage
+              mountPath: {{ .Values.app.storagePath }}   # Mounts PVC at /data
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /health     # Health check also verifies PVC is writable!
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+      volumes:
+        - name: file-storage
+          persistentVolumeClaim:
+            claimName: file-service-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: file-service
+spec:
+  type: ClusterIP
+  selector:
+    app: file-service
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP
+---
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: file-service-pdb
+  namespace: {{ .Values.namespace }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: file-service
+{{- end }}

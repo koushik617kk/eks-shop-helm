@@ -1,0 +1,48 @@
+# Namespace + ResourceQuota for the demo app
+# Apply this FIRST before ArgoCD deploys anything else.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+  labels:
+    # Required for AWS CNI Network Policies to work
+    app.kubernetes.io/managed-by: argocd
+
+---
+# ResourceQuota: Hard cap on total resources the 'demo' namespace can consume.
+# Scenario: Try to deploy a pod that exceeds this — watch it get rejected!
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: demo-quota
+  namespace: demo
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    pods: "30"
+    services: "10"
+
+---
+# LimitRange: Auto-inject default resource limits for pods that have none.
+# Protects against devs who forget to set limits (prevents node starvation).
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: demo-limits
+  namespace: demo
+spec:
+  limits:
+  - type: Container
+    default:                 # Applied if dev doesn't specify limits
+      cpu: "200m"
+      memory: "256Mi"
+    defaultRequest:          # Applied if dev doesn't specify requests
+      cpu: "50m"
+      memory: "64Mi"
+    max:                     # Hard max per container — cannot be exceeded
+      cpu: "1"
+      memory: "1Gi"

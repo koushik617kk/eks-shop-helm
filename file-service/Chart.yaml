@@ -1,0 +1,5 @@
+apiVersion: v2
+name: file-service
+description: Stateful file storage backend for the EKS Demo Shop
+version: 1.0.0
+appVersion: "1.0.0"

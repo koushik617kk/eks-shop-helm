@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: shop-frontend
+    version: {{ .Values.app.version | quote }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: shop-frontend
+  template:
+    metadata:
+      labels:
+        app: shop-frontend
+        version: {{ .Values.app.version | quote }}
+      annotations:
+        # Prometheus scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ── Multi-AZ: Spread pods evenly across AZs ──────────────────────────────
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: shop-frontend
+
+      containers:
+        - name: shop-frontend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+
+          env:
+            - name: APP_VERSION
+              value: {{ .Values.app.version | quote }}
+            - name: ORDER_SERVICE_URL
+              value: {{ .Values.app.orderServiceUrl | quote }}
+            - name: FILE_SERVICE_URL
+              value: {{ .Values.app.fileServiceUrl | quote }}
+
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+
+          # ── Liveness: restart pod if it stops responding ────────────────────
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+          # ── Readiness: only route traffic once pod is ready ─────────────────
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 2

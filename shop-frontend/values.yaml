@@ -1,0 +1,47 @@
+# ─── Image ─────────────────────────────────────────────────────────────────────
+image:
+  repository: "REPLACE_WITH_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/shop-frontend"
+  tag: "latest"               # GitHub Actions CI overwrites this with the git SHA
+  pullPolicy: Always
+
+# ─── Replicas & Scaling ────────────────────────────────────────────────────────
+replicaCount: 3               # Spread across 3 AZs via topologySpreadConstraints
+
+# ─── App Config ────────────────────────────────────────────────────────────────
+app:
+  version: "v1.0.0"
+  orderServiceUrl: "http://order-service.demo.svc.cluster.local:5000"
+  fileServiceUrl:  "http://file-service.demo.svc.cluster.local:5000"
+
+# ─── Resources ─────────────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+
+# ─── HPA ────────────────────────────────────────────────────────────────────────
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+# ─── Pod Disruption Budget ─────────────────────────────────────────────────────
+pdb:
+  enabled: true
+  minAvailable: 2
+
+# ─── Ingress (AWS ALB) ─────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  groupName: "eks-demo-alb"   # All 3 services share 1 physical ALB
+  scheme: "internet-facing"
+  targetType: "ip"
+  certificateArn: ""          # Set to your ACM ARN when TLS is configured
+  host: "shop.demo.example.com"
+
+# ─── Namespace ─────────────────────────────────────────────────────────────────
+namespace: demo
