@@ -1,6 +1,6 @@
 image:
   repository: "445567074640.dkr.ecr.us-east-1.amazonaws.com/file-service"
-  tag: "4b54040157376d5b6e2fe4469c7f4e9d3a4b62d5"
+  tag: "9bd3fb416271f8c6561fe83b9d6051b48215adcc"
   pullPolicy: Always
 
 # MUST be 1 for a single ReadWriteOnce EBS PVC.
