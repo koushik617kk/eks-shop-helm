@@ -1,6 +1,6 @@
 image:
-  repository: "REPLACE_WITH_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/file-service"
-  tag: "latest"
+  repository: "381492206162.dkr.ecr.us-east-1.amazonaws.com/file-service"
+  tag: "80ea2e129c84728113b60e56c8eae869b14945fe"
   pullPolicy: Always
 
 # MUST be 1 for a single ReadWriteOnce EBS PVC.
