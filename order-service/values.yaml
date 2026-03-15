@@ -1,6 +1,6 @@
 image:
   repository: "381492206162.dkr.ecr.us-east-1.amazonaws.com/order-service"
-  tag: "800006adc98585652ed41b90450d6d26725af1b1"
+  tag: "04024b206ef536d2820d95852647dceb3e2e6d87"
   pullPolicy: Always
 
 replicaCount: 3
