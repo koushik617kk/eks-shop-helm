@@ -3,7 +3,11 @@ image:
   tag: "latest"
   pullPolicy: Always
 
-replicaCount: 2    # 2 replicas: one per AZ — EBS volumes are AZ-locked so we limit spread
+# MUST be 1 for a single ReadWriteOnce EBS PVC.
+# EBS can only attach to ONE node at a time — 2 replicas with 1 PVC = Pod-2 stuck Pending forever.
+# For multi-replica stateful workloads, use StatefulSet with volumeClaimTemplates (1 PVC per pod).
+replicaCount: 1
+
 app:
   version: "v1.0.0"
   storagePath: "/data"
@@ -19,11 +23,13 @@ resources:
 # ── Persistent Volume Claim ────────────────────────────────────────────────────
 storage:
   enabled: true
-  storageClassName: gp3       # AWS EBS GP3 — cheaper than GP2
+  storageClassName: gp3
   size: 5Gi
 
 pdb:
   enabled: true
-  minAvailable: 1             # With only 2 replicas, protect at least 1
+  # With replicas:1, minAvailable:1 would permanently block ALL node drains.
+  # Setting to 0 allows voluntary disruptions (drains) while still recording the PDB object.
+  minAvailable: 0
 
 namespace: demo

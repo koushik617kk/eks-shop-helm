@@ -1,6 +1,6 @@
 # ArgoCD App-of-Apps: One manifest to rule them all.
 # Apply this single file to ArgoCD and it deploys all 3 services automatically.
-# Replace GH_USER with your GitHub username.
+# GitHub username: koushik617kk
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/GH_USER/eks-shop-helm.git
+    repoURL: https://github.com/koushik617kk/eks-shop-helm.git
     targetRevision: main
     path: shop-frontend
   destination:
@@ -32,7 +32,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/GH_USER/eks-shop-helm.git
+    repoURL: https://github.com/koushik617kk/eks-shop-helm.git
     targetRevision: main
     path: order-service
   destination:
@@ -52,7 +52,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/GH_USER/eks-shop-helm.git
+    repoURL: https://github.com/koushik617kk/eks-shop-helm.git
     targetRevision: main
     path: file-service
   destination:

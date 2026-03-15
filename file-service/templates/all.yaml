@@ -25,6 +25,12 @@ metadata:
     version: {{ .Values.app.version | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  # CRITICAL for stateful services with ReadWriteOnce PVCs:
+  # Rolling update would deadlock — new pod waits for PVC, old pod never dies.
+  # Recreate kills old pod first → EBS detaches → new pod attaches → no deadlock.
+  # Trade-off: ~30 second downtime during deploy (acceptable for stateful storage service)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: file-service
