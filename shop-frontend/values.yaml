@@ -1,7 +1,7 @@
 # ─── Image ─────────────────────────────────────────────────────────────────────
 image:
-  repository: "381492206162.dkr.ecr.us-east-1.amazonaws.com/shop-frontend"
-  tag: "ee0df4837fc54f7c30ec199bb4a032ac18a5c217"
+  repository: "445567074640.dkr.ecr.us-east-1.amazonaws.com/shop-frontend"
+  tag: "09f35338591e7592223b4e99b021910fddae633e"
   pullPolicy: Always
 
 # ─── Replicas & Scaling ────────────────────────────────────────────────────────
