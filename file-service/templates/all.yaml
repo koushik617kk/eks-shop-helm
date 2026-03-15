@@ -49,8 +49,10 @@ spec:
       # Without this, EBS mounts as root:root and non-root appuser (UID 1000) gets
       # Permission denied when trying to write to /data.
       securityContext:
-        fsGroup: 1000        # Must match the GID of appuser in the Dockerfile
-        runAsNonRoot: true   # Prevents accidentally running as root
+        fsGroup: 1000        # Kubernetes chowns the EBS volume to this GID on mount
+        runAsNonRoot: true   # Safety: prevents running as root
+        runAsUser: 1000      # REQUIRED: numeric UID so k8s can verify runAsNonRoot
+        runAsGroup: 1000     # Numeric GID to match fsGroup
 
       # ── AZ Affinity ──────────────────────────────────────────────────────────
       affinity:
