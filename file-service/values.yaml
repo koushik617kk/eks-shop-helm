@@ -1,5 +1,5 @@
 image:
-  repository: "183631302489.dkr.ecr.us-east-1.amazonaws.com/file-service"
+  repository: "637423196877.dkr.ecr.us-east-1.amazonaws.com/file-service"
   tag: "9bd3fb416271f8c6561fe83b9d6051b48215adcc"
   pullPolicy: Always
 
