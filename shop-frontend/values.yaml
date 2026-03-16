@@ -1,6 +1,6 @@
 # ─── Image ─────────────────────────────────────────────────────────────────────
 image:
-  repository: "183631302489.dkr.ecr.us-east-1.amazonaws.com/shop-frontend"
+  repository: "637423196877.dkr.ecr.us-east-1.amazonaws.com/shop-frontend"
   tag: "09f35338591e7592223b4e99b021910fddae633e"
   pullPolicy: Always
 
